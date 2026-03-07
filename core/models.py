@@ -10,14 +10,14 @@ class CriteriaScore:
     name: str
     score: float
     max_score: float
-    comment: str = ""
+    comment: str = ''
 
     def to_dict(self) -> Dict:
         return {
-            "name": self.name,
-            "score": self.score,
-            "max_score": self.max_score,
-            "comment": self.comment
+            'name': self.name,
+            'score': self.score,
+            'max_score': self.max_score,
+            'comment': self.comment
         }
 
 
@@ -37,16 +37,16 @@ class ReviewResult:
 
     def to_dict(self) -> Dict:
         return {
-            "filename": self.filename,
-            "overall_score": self.overall_score,
-            "max_score": self.max_score,
-            "criteria_scores": [c.to_dict() for c in self.criteria_scores],
-            "feedback": self.feedback,
-            "technical_issues": self.technical_issues,
-            "recommendations": self.recommendations,
-            "strengths": self.strengths,
-            "weaknesses": self.weaknesses,
-            "created_at": self.created_at
+            'filename': self.filename,
+            'overall_score': self.overall_score,
+            'max_score': self.max_score,
+            'criteria_scores': [c.to_dict() for c in self.criteria_scores],
+            'feedback': self.feedback,
+            'technical_issues': self.technical_issues,
+            'recommendations': self.recommendations,
+            'strengths': self.strengths,
+            'weaknesses': self.weaknesses,
+            'created_at': self.created_at
         }
 
     def to_json(self) -> str:
@@ -55,37 +55,37 @@ class ReviewResult:
     def __str__(self) -> str:
         """Красивое текстовое представление"""
         lines = []
-        lines.append("=" * 60)
-        lines.append(f"РЕЗУЛЬТАТ ПРОВЕРКИ: {self.filename}")
-        lines.append("=" * 60)
-        lines.append(f"ИТОГОВАЯ ОЦЕНКА: {self.overall_score:.1f}/{self.max_score}")
-        lines.append("-" * 60)
+        lines.append('=' * 60)
+        lines.append(f'РЕЗУЛЬТАТ ПРОВЕРКИ: {self.filename}')
+        lines.append('=' * 60)
+        lines.append(f'ИТОГОВАЯ ОЦЕНКА: {self.overall_score:.1f}/{self.max_score}')
+        lines.append('-' * 60)
 
-        lines.append("ОЦЕНКИ ПО КРИТЕРИЯМ:")
+        lines.append('ОЦЕНКИ ПО КРИТЕРИЯМ:')
         for c in self.criteria_scores:
             percentage = (c.score / c.max_score * 100) if c.max_score > 0 else 0
-            lines.append(f"  {c.name}: {c.score:.1f}/{c.max_score} ({percentage:.0f}%)")
+            lines.append(f'  {c.name}: {c.score:.1f}/{c.max_score} ({percentage:.0f}%)')
             if c.comment:
-                lines.append(f"    Комментарий: {c.comment}")
+                lines.append(f'    Комментарий: {c.comment}')
 
         if self.technical_issues:
-            lines.append("-" * 60)
-            lines.append("ТЕХНИЧЕСКИЕ ЗАМЕЧАНИЯ:")
+            lines.append('-' * 60)
+            lines.append('ТЕХНИЧЕСКИЕ ЗАМЕЧАНИЯ:')
             for issue in self.technical_issues:
-                lines.append(f"  • {issue}")
+                lines.append(f'  • {issue}')
 
-        lines.append("-" * 60)
-        lines.append("ОБРАТНАЯ СВЯЗЬ:")
+        lines.append('-' * 60)
+        lines.append('ОБРАТНАЯ СВЯЗЬ:')
         lines.append(self.feedback)
 
         if self.recommendations:
-            lines.append("-" * 60)
-            lines.append("РЕКОМЕНДАЦИИ:")
+            lines.append('-' * 60)
+            lines.append('РЕКОМЕНДАЦИИ:')
             for rec in self.recommendations:
-                lines.append(f"  • {rec}")
+                lines.append(f'  • {rec}')
 
-        lines.append("=" * 60)
-        return "\n".join(lines)
+        lines.append('=' * 60)
+        return '\n'.join(lines)
 
 
 @dataclass
@@ -93,25 +93,27 @@ class GradingRubric:
     """Рубрика оценивания"""
     name: str
     criteria: List[Dict[str, Any]]
-    description: str = ""
+    description: str = ''
 
     @classmethod
     def default_technical(cls) -> 'GradingRubric':
         """Стандартная рубрика для технических отчетов"""
         return cls(
-            name="Технический отчет",
-            description="Стандартные критерии для проверки технических отчетов",
+            name='Технический отчет',
+            description='Стандартные критерии для проверки технических отчетов',
             criteria=[
-                {"name": "Соответствие структуре", "max_score": 20,
-                 "description": "Наличие всех обязательных разделов"},
-                {"name": "Полнота описания", "max_score": 25,
-                 "description": "Детальность и полнота описания выполненной работы"},
-                {"name": "Корректность выводов", "max_score": 25,
-                 "description": "Логичность и обоснованность выводов"},
-                {"name": "Оформление (ГОСТ)", "max_score": 15,
-                 "description": "Соответствие требованиям оформления"},
-                {"name": "Список литературы", "max_score": 15,
-                 "description": "Корректность оформления и достаточность источников"}
+                {'name': 'Соответствие тематике', 'max_score': 20,
+                 'description': 'Тема работы соответствует теме задания. Если нет - по всем другим пунктам ставь 0.'},
+                {'name': 'Соответствие структуре', 'max_score': 20,
+                 'description': 'Наличие всех обязательных разделов'},
+                {'name': 'Полнота описания', 'max_score': 25,
+                 'description': 'Детальность и полнота описания выполненной работы'},
+                {'name': 'Корректность выводов', 'max_score': 25,
+                 'description': 'Логичность и обоснованность выводов'},
+                {'name': 'Оформление (ГОСТ)', 'max_score': 15,
+                 'description': 'Соответствие требованиям оформления'},
+                {'name': 'Список литературы', 'max_score': 15,
+                 'description': 'Корректность оформления и достаточность источников'}
             ]
         )
 
@@ -119,18 +121,33 @@ class GradingRubric:
     def default_lab_report(cls) -> 'GradingRubric':
         """Рубрика для лабораторных работ"""
         return cls(
-            name="Лабораторная работа",
-            description="Критерии для проверки лабораторных работ",
+            name='Лабораторная работа',
+            description='Критерии для проверки лабораторных работ',
             criteria=[
-                {"name": "Цель и задачи", "max_score": 10,
-                 "description": "Четкость формулировки цели и задач"},
-                {"name": "Теоретическая часть", "max_score": 20,
-                 "description": "Полнота теоретического обоснования"},
-                {"name": "Практическая реализация", "max_score": 30,
-                 "description": "Качество выполнения практической части"},
-                {"name": "Анализ результатов", "max_score": 25,
-                 "description": "Глубина анализа полученных результатов"},
-                {"name": "Выводы", "max_score": 15,
-                 "description": "Соответствие выводов поставленным задачам"}
+                {
+                    'name': 'Цель и задачи',
+                    'max_score': 10,
+                    'description': 'Четкость формулировки цели и задач',
+                },
+                {
+                    'name': 'Теоретическая часть',
+                    'max_score': 20,
+                    'description': 'Полнота теоретического обоснования',
+                },
+                {
+                    'name': 'Практическая реализация',
+                    'max_score': 30,
+                    'description': 'Качество выполнения практической части',
+                },
+                {
+                    'name': 'Анализ результатов',
+                    'max_score': 25,
+                    'description': 'Глубина анализа полученных результатов',
+                },
+                {
+                    'name': 'Выводы',
+                    'max_score': 15,
+                    'description': 'Соответствие выводов поставленным задачам',
+                }
             ]
         )
