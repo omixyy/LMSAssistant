@@ -31,9 +31,7 @@ class PromptBuilder:
             {answer}
             """ +
             (self._build_cot_instructions() if use_cot else '') +
-            """
-            В конце вкратце перескажи содержание работы студента и содержание описания работы
-            """
+            self._build_response_format()
         )
 
     @staticmethod
@@ -49,7 +47,6 @@ class PromptBuilder:
         
         ПРАВИЛА:
         - Не добавляй никакого текста вне JSON
-        - Используй только русский язык для комментариев
         - Будь конкретным в замечаниях
         - Основывайся только на предоставленных материалах"""
 
@@ -185,14 +182,14 @@ class PromptBuilder:
             'formulas_check': [
                 {
                     'formula': 'формула',
-                    'correct': True / False,
+                    'correct': 'True / False',
                     'errors': 'описание ошибки если есть'
                 }
             ],
             'graphics_check': [
                 {
                     'type': 'график/таблица',
-                    'correct': True / False,
+                    'correct': 'True / False',
                     'issues': 'проблемы если есть'
                 }
             ],
@@ -222,14 +219,15 @@ class PromptBuilder:
         }
 
         return f"""
-ТРЕБОВАНИЯ К ФОРМАТУ ОТВЕТА:
-
-1. ОТВЕТ ДОЛЖЕН БЫТЬ ТОЛЬКО В ФОРМАТЕ JSON
-2. НЕ ДОБАВЛЯЙ НИКАКОГО ТЕКСТА ДО ИЛИ ПОСЛЕ JSON
-3. ИСПОЛЬЗУЙ ТОЛЬКО РУССКИЙ ЯЗЫК ДЛЯ ТЕКСТОВЫХ ПОЛЕЙ
-4. СОБЛЮДАЙ СТРУКТУРУ JSON
-
-ПРИМЕР ПРАВИЛЬНОГО ОТВЕТА:
-```json
-{json.dumps(example_response, ensure_ascii=False, indent=2)}
-"""
+        ТРЕБОВАНИЯ К ФОРМАТУ ОТВЕТА:
+        
+        1. ОТВЕТ ДОЛЖЕН БЫТЬ ТОЛЬКО В ФОРМАТЕ JSON
+        2. НЕ ДОБАВЛЯЙ НИКАКОГО ТЕКСТА ДО ИЛИ ПОСЛЕ JSON
+        3. ИСПОЛЬЗУЙ ТОЛЬКО РУССКИЙ ЯЗЫК ДЛЯ ТЕКСТОВЫХ ПОЛЕЙ, 
+           НО В КЛЮЧАХ ТВОЕГО JSON ОТВЕТА ИСПОЛЬЗУЙ АНГЛИЙСКИЕ НАЗВАНИЯ
+        4. СОБЛЮДАЙ СТРУКТУРУ JSON
+        
+        ПРИМЕР ПРАВИЛЬНОГО ОТВЕТА:
+        ```json
+        {json.dumps(example_response, ensure_ascii=False, indent=2)}
+        """

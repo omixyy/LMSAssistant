@@ -1,19 +1,20 @@
-from core.parser.enhanced_parser import EnhancedFileProcessor
+from core import DocumentProcessor
 from core.prompter.prompt_builder import PromptBuilder
 
 import ollama
 
 
-processor = EnhancedFileProcessor(
+processor = DocumentProcessor(
     extract_images=True,
     detect_tables=True,
+    detect_formulas=True
 )
 
 prompt_builder = PromptBuilder()
 
 # Обработка PDF
 student_answer, _ = processor.process(
-    'report.pdf',
+    'main.pdf',
 )
 
 student_task, _ = processor.process(
@@ -24,11 +25,11 @@ student_task, _ = processor.process(
 def ask_llm(model_name, prompt):
     optimal_config = {
         'model': model_name,
-        'prompt': prompt,  # prompter передается отдельно, не внутри options
+        'prompt': prompt,
         'options': {
-            'num_ctx': 32000,  # Хороший баланс скорость/качество
-            'num_predict': 2048,  # Максимальная длина ответа
-            'temperature': 0.3,  # Для точности
+            'num_ctx': 64000,
+            'num_predict': 2048,
+            'temperature': 0.3,
         }
     }
 
