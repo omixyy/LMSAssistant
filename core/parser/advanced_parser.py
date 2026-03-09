@@ -3,8 +3,7 @@ import re
 import logging
 from typing import Dict, List, Tuple, Any, Optional
 from pathlib import Path
-import base64
-import io
+
 
 from .non_text_elements import Formula, Table, ExtractedImage
 
@@ -64,7 +63,7 @@ class AdvancedPDFParser:
             pdf_path: Путь к PDF файлу
             output_dir: Директория для сохранения извлечённых изображений (опционально)
         """
-        logger.info(f"Начинаю парсинг PDF: {pdf_path}")
+        logger.info(f'Начинаю парсинг PDF: {pdf_path}')
         
         if output_dir:
             Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -89,10 +88,10 @@ class AdvancedPDFParser:
         
         for page_num in range(len(doc)):
             page = doc[page_num]
-            logger.info(f"Обработка страницы {page_num + 1}/{len(doc)}")
+            logger.info(f'Обработка страницы {page_num + 1}/{len(doc)}')
             
             # === 1. Извлечение текста с позиционированием ===
-            text_dict = page.get_text("dict")
+            text_dict = page.get_text('dict')
             page_text_parts = []
             
             # === 2. Детекция и извлечение формул ===
@@ -125,14 +124,14 @@ class AdvancedPDFParser:
             )
             
             if page_text.strip():
-                all_text.append(f"\n--- Страница {page_num + 1} ---\n{page_text}")
+                all_text.append(f'\n--- Страница {page_num + 1} ---\n{page_text}')
         
         doc.close()
         
         result['text'] = '\n'.join(all_text)
-        logger.info(f"Парсинг завершён. Формул: {result['metadata']['formulas_count']}, "
-                   f"Таблиц: {result['metadata']['tables_count']}, "
-                   f"Изображений: {result['metadata']['images_count']}")
+        logger.info(f'Парсинг завершён. Формул: {result['metadata']['formulas_count']}, '
+                   f'Таблиц: {result['metadata']['tables_count']}, '
+                   f'Изображений: {result['metadata']['images_count']}')
         
         return result
     
@@ -140,13 +139,13 @@ class AdvancedPDFParser:
         """Извлечение формул со страницы"""
         formulas = []
         
-        for block in text_dict.get("blocks", []):
-            if block.get("type") != 0:  # Только текстовые блоки
+        for block in text_dict.get('blocks', []):
+            if block.get('type') != 0:  # Только текстовые блоки
                 continue
                 
-            for line in block.get("lines", []):
-                for span in line.get("spans", []):
-                    text = span.get("text", "").strip()
+            for line in block.get('lines', []):
+                for span in line.get('spans', []):
+                    text = span.get('text', '').strip()
                     if not text or len(text) < 2:
                         continue
                     
@@ -156,7 +155,7 @@ class AdvancedPDFParser:
                             page=page.number + 1,
                             text=text,
                             latex=formula_info['latex'],
-                            bbox=tuple(span["bbox"]),
+                            bbox=tuple(span['bbox']),
                             context=self._get_context(text_dict, span),
                             confidence=formula_info['confidence'],
                             formula_type=formula_info['type']
@@ -164,10 +163,10 @@ class AdvancedPDFParser:
                         formulas.append(formula)
         
         # Дополнительный поиск: блоки с центрированным текстом и матем. символами
-        for block in text_dict.get("blocks", []):
-            if block.get("type") != 0:
+        for block in text_dict.get('blocks', []):
+            if block.get('type') != 0:
                 continue
-            bbox = block.get("bbox")
+            bbox = block.get('bbox')
             if not bbox:
                 continue
                 
@@ -176,10 +175,10 @@ class AdvancedPDFParser:
             block_center = (bbox[0] + bbox[2]) / 2
             is_centered = abs(block_center - page_width/2) < page_width * 0.1
             
-            block_text = " ".join(
-                span.get("text", "") 
-                for line in block.get("lines", []) 
-                for span in line.get("spans", [])
+            block_text = ' '.join(
+                span.get('text', '') 
+                for line in block.get('lines', []) 
+                for span in line.get('spans', [])
             ).strip()
             
             if (is_centered and 
@@ -192,9 +191,9 @@ class AdvancedPDFParser:
                     text=block_text,
                     latex=self._text_to_latex(block_text),
                     bbox=tuple(bbox),
-                    context="",
+                    context='',
                     confidence=0.7,
-                    formula_type="display"
+                    formula_type='display'
                 ))
         
         return formulas
@@ -225,12 +224,12 @@ class AdvancedPDFParser:
                     })
                     return result
         
-        # === БЛОК 2: Строгая эвристика для "подозрительного" текста ===
+        # === БЛОК 2: Строгая эвристика для 'подозрительного' текста ===
         # Отклоняем сразу, если текст похож на обычное предложение
         if self._looks_like_prose(text_stripped):
             return result  # is_formula=False
         
-        # Считаем "математичность" текста
+        # Считаем 'математичность' текста
         score = 0.0
         
         # 1. LaTeX-команды (сильный сигнал)
@@ -249,7 +248,7 @@ class AdvancedPDFParser:
             score += 0.2
         
         # 4. Шрифт (дополнительный сигнал, но не решающий)
-        font = span.get("font", "").lower()
+        font = span.get('font', '').lower()
         if any(kw in font for kw in ['math', 'symbol', 'cmsy', 'msam']):  # специфичные для формул
             score += 0.15
         
@@ -355,7 +354,7 @@ class AdvancedPDFParser:
                         )
                         tables.append(table)
         except AttributeError:
-            logger.warning("find_tables не доступен в этой версии PyMuPDF")
+            logger.warning('find_tables не доступен в этой версии PyMuPDF')
         
         # Метод 2: Резервный вариант с pdfplumber
         if not tables and PDFPLUMBER_AVAILABLE:
@@ -379,7 +378,7 @@ class AdvancedPDFParser:
                             )
                             tables.append(table)
             except Exception as e:
-                logger.warning(f"pdfplumber не смог извлечь таблицы: {e}")
+                logger.warning(f'pdfplumber не смог извлечь таблицы: {e}')
         
         return tables
     
@@ -400,8 +399,8 @@ class AdvancedPDFParser:
                 if not img_info:
                     continue
                 
-                image_bytes = img_info.get("image")
-                image_ext = img_info.get("ext", "png")
+                image_bytes = img_info.get('image')
+                image_ext = img_info.get('ext', 'png')
                 
                 # Находим все вхождения изображения на странице
                 rects = page.get_image_rects(xref)
@@ -433,15 +432,15 @@ class AdvancedPDFParser:
                     
                     # Сохранение на диск если указана директория
                     if output_dir and image_bytes:
-                        img_path = Path(output_dir) / f"page_{page_num}_img_{img_idx}_{rect_idx}.{image_ext}"
-                        with open(img_path, "wb") as f:
+                        img_path = Path(output_dir) / f'page_{page_num}_img_{img_idx}_{rect_idx}.{image_ext}'
+                        with open(img_path, 'wb') as f:
                             f.write(image_bytes)
-                        logger.debug(f"Изображение сохранено: {img_path}")
+                        logger.debug(f'Изображение сохранено: {img_path}')
                     
                     pix = None  # Освобождаем память
                     
             except Exception as e:
-                logger.error(f"Ошибка при обработке изображения {xref}: {e}")
+                logger.error(f'Ошибка при обработке изображения {xref}: {e}')
                 continue
         
         # Дополнительно: поиск векторных графиков/диаграмм по признакам
@@ -452,7 +451,7 @@ class AdvancedPDFParser:
     def _find_caption_near_bbox(self, page, bbox: Tuple, max_distance: float = 50) -> str:
         """Поиск подписи рядом с заданным bbox"""
         x0, y0, x1, y1 = bbox
-        text = page.get_text("dict")
+        text = page.get_text('dict')
         
         # Паттерны для подписей
         caption_patterns = [
@@ -465,10 +464,10 @@ class AdvancedPDFParser:
         
         candidates = []
         
-        for block in text.get("blocks", []):
-            if block.get("type") != 0:
+        for block in text.get('blocks', []):
+            if block.get('type') != 0:
                 continue
-            block_bbox = block.get("bbox")
+            block_bbox = block.get('bbox')
             if not block_bbox:
                 continue
             
@@ -480,10 +479,10 @@ class AdvancedPDFParser:
                 continue
             
             # Извлекаем текст блока
-            block_text = " ".join(
-                span.get("text", "").strip()
-                for line in block.get("lines", [])
-                for span in line.get("spans", [])
+            block_text = ' '.join(
+                span.get('text', '').strip()
+                for line in block.get('lines', [])
+                for span in line.get('spans', [])
             ).strip()
             
             if not block_text or len(block_text) > 300:
@@ -502,44 +501,44 @@ class AdvancedPDFParser:
             candidates.sort(key=lambda x: x[0])
             return candidates[0][1]
         
-        return ""
+        return ''
     
     def _get_context(self, text_dict: Dict, span: Dict, max_words: int = 10) -> str:
         """Получает контекст вокруг span"""
         context_words = []
-        target_bbox = span["bbox"]
+        target_bbox = span['bbox']
         
-        for block in text_dict.get("blocks", []):
-            if block.get("type") != 0:
+        for block in text_dict.get('blocks', []):
+            if block.get('type') != 0:
                 continue
-            for line in block.get("lines", []):
-                for s in line.get("spans", []):
-                    s_bbox = s["bbox"]
+            for line in block.get('lines', []):
+                for s in line.get('spans', []):
+                    s_bbox = s['bbox']
                     # Проверка на ту же строку (по вертикали)
                     if abs(s_bbox[1] - target_bbox[1]) < 5:
-                        words = s.get("text", "").split()
+                        words = s.get('text', '').split()
                         context_words.extend(words)
         
         # Возвращаем слова до и после (упрощённо)
-        return " ".join(context_words[:max_words])
+        return ' '.join(context_words[:max_words])
     
     def _build_page_text(self, text_dict: Dict, formulas: List[Formula], 
                         table_bboxes: List[Tuple], exclude_bboxes: List[Tuple]) -> str:
         """Сборка текста страницы с заменой формул и таблиц на маркеры"""
         lines = []
         
-        for block in text_dict.get("blocks", []):
-            if block.get("type") != 0:
+        for block in text_dict.get('blocks', []):
+            if block.get('type') != 0:
                 continue
                 
-            for line in block.get("lines", []):
+            for line in block.get('lines', []):
                 line_parts = []
-                for span in line.get("spans", []):
-                    text = span.get("text", "").strip()
+                for span in line.get('spans', []):
+                    text = span.get('text', '').strip()
                     if not text:
                         continue
                     
-                    span_bbox = tuple(span["bbox"])
+                    span_bbox = tuple(span['bbox'])
                     
                     # Пропускаем если это часть формулы или таблицы
                     if self._bbox_overlaps_any(span_bbox, exclude_bboxes):
@@ -548,13 +547,13 @@ class AdvancedPDFParser:
                     line_parts.append(text)
                 
                 if line_parts:
-                    lines.append(" ".join(line_parts))
+                    lines.append(' '.join(line_parts))
         
         # Добавляем маркеры для формул
         for f in formulas:
-            lines.append(f"«ФОРМУЛА {f.formula_type}: ${f.latex}$»")
+            lines.append(f'«ФОРМУЛА {f.formula_type}: ${f.latex}$»')
         
-        return "\n".join(lines)
+        return '\n'.join(lines)
     
     def _bbox_overlaps_any(self, bbox: Tuple, bbox_list: List[Tuple], threshold: float = 0.5) -> bool:
         """Проверяет перекрытие bbox с любым из списка"""

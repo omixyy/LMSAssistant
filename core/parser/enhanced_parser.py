@@ -33,48 +33,48 @@ class EnhancedFileProcessor:
         """
         Обрабатывает PDF и возвращает обогащённый текст + метаданные
         """
-        logger.info(f"Обработка файла: {file_path}")
+        logger.info(f'Обработка файла: {file_path}')
         
         # Парсинг
         result = self.parser.parse_pdf(file_path, output_dir=output_dir)
         
         # Формирование обогащённого текста
-        enriched_parts = ["=== ИЗВЛЕЧЁННЫЙ ТЕКСТ ДОКУМЕНТА ===\n", result['text']]
+        enriched_parts = ['=== ИЗВЛЕЧЁННЫЙ ТЕКСТ ДОКУМЕНТА ===\n', result['text']]
         
         # Добавляем формулы
         if result['formulas']:
-            enriched_parts.append("\n\n=== РАСПОЗНАННЫЕ ФОРМУЛЫ ===")
+            enriched_parts.append('\n\n=== РАСПОЗНАННЫЕ ФОРМУЛЫ ===')
             for i, f in enumerate(result['formulas'], 1):
                 enriched_parts.append(
-                    f"\n[{i}] Стр.{f.page} ({f.formula_type}, conf:{f.confidence:.2f}): ${f.latex}$"
+                    f'\n[{i}] Стр.{f.page} ({f.formula_type}, conf:{f.confidence:.2f}): ${f.latex}$'
                 )
                 if f.context:
-                    enriched_parts.append(f"    Контекст: {f.context}")
+                    enriched_parts.append(f'    Контекст: {f.context}')
         
         # Добавляем таблицы
         if result['tables']:
-            enriched_parts.append("\n\n=== ИЗВЛЕЧЁННЫЕ ТАБЛИЦЫ ===")
+            enriched_parts.append('\n\n=== ИЗВЛЕЧЁННЫЕ ТАБЛИЦЫ ===')
             for i, t in enumerate(result['tables'], 1):
-                enriched_parts.append(f"\n[{i}] Стр.{t.page} ({t.num_rows}×{t.num_cols})")
+                enriched_parts.append(f'\n[{i}] Стр.{t.page} ({t.num_rows}×{t.num_cols})')
                 if t.caption:
-                    enriched_parts.append(f"    Подпись: {t.caption}")
+                    enriched_parts.append(f'    Подпись: {t.caption}')
                 # Форматируем таблицу как Markdown
                 if t.data:
-                    header = " | ".join(t.headers) if t.headers else " | ".join(str(c) for c in t.data[0])
-                    separator = "---|" * (t.num_cols - 1) + "---"
-                    enriched_parts.append(f"    | {header} |")
-                    enriched_parts.append(f"    | {separator} |")
+                    header = ' | '.join(t.headers) if t.headers else ' | '.join(str(c) for c in t.data[0])
+                    separator = '---|' * (t.num_cols - 1) + '---'
+                    enriched_parts.append(f'    | {header} |')
+                    enriched_parts.append(f'    | {separator} |')
                     for row in t.data[1:]:
-                        enriched_parts.append(f"    | {' | '.join(str(c) for c in row)} |")
+                        enriched_parts.append(f'    | {' | '.join(str(c) for c in row)} |')
         
         # Добавляем изображения
         if result['images']:
-            enriched_parts.append("\n\n=== ИЗОБРАЖЕНИЯ ===")
+            enriched_parts.append('\n\n=== ИЗОБРАЖЕНИЯ ===')
             for i, img in enumerate(result['images'], 1):
-                desc = f"Стр.{img.page}, {img.width}×{img.height}px, формат: {img.image_format}"
+                desc = f'Стр.{img.page}, {img.width}×{img.height}px, формат: {img.image_format}'
                 if img.caption:
-                    desc += f", подпись: {img.caption}"
-                enriched_parts.append(f"[{i}] {desc}")
+                    desc += f', подпись: {img.caption}'
+                enriched_parts.append(f'[{i}] {desc}')
         
         # Метаданные
         metadata = {
@@ -96,12 +96,12 @@ class EnhancedFileProcessor:
         text, metadata = self.process(file_path)
         
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(f"# {metadata['filename']}\n\n")
-            f.write(f"**Страниц:** {metadata['pages']} | ")
-            f.write(f"**Формул:** {metadata['formulas_count']} | ")
-            f.write(f"**Таблиц:** {metadata['tables_count']} | ")
-            f.write(f"**Изображений:** {metadata['images_count']}\n\n")
-            f.write("---\n\n")
+            f.write(f'# {metadata['filename']}\n\n')
+            f.write(f'**Страниц:** {metadata['pages']} | ')
+            f.write(f'**Формул:** {metadata['formulas_count']} | ')
+            f.write(f'**Таблиц:** {metadata['tables_count']} | ')
+            f.write(f'**Изображений:** {metadata['images_count']}\n\n')
+            f.write('---\n\n')
             f.write(text)
         
-        logger.info(f"Экспорт в Markdown завершён: {output_path}")
+        logger.info(f'Экспорт в Markdown завершён: {output_path}')

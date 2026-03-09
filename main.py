@@ -1,5 +1,5 @@
-from core.parse.enhanced_parser import EnhancedFileProcessor
-from core.prompt.prompt_builder import PromptBuilder
+from core.parser.enhanced_parser import EnhancedFileProcessor
+from core.prompter.prompt_builder import PromptBuilder
 
 import ollama
 
@@ -13,7 +13,7 @@ prompt_builder = PromptBuilder()
 
 # Обработка PDF
 student_answer, _ = processor.process(
-    'main.pdf',
+    'report.pdf',
 )
 
 student_task, _ = processor.process(
@@ -24,15 +24,11 @@ student_task, _ = processor.process(
 def ask_gemma(model_name, prompt):
     optimal_config = {
         'model': model_name,
-        'prompt': prompt,  # prompt передается отдельно, не внутри options
+        'prompt': prompt,  # prompter передается отдельно, не внутри options
         'options': {
             'num_ctx': 32000,  # Хороший баланс скорость/качество
             'num_predict': 2048,  # Максимальная длина ответа
             'temperature': 0.3,  # Для точности
-            # 'top_k': 40,  # Стандартное значение
-            # 'top_p': 0.9,  # Классическое значение
-            # 'repeat_penalty': 1.1,  # Избегаем повторений
-            # 'seed': 42  # Для воспроизводимости
         }
     }
 
@@ -51,7 +47,7 @@ llm_prompt = prompt_builder.build_prompt(
 print(llm_prompt)
 
 llm_response = ask_gemma(
-    'gemma3:4b',
+    'deepseek-v3.1:671b-cloud',
     llm_prompt,
 )
 
