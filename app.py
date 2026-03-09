@@ -1,5 +1,5 @@
-from core import DocumentProcessor
-from core.prompter.prompt_builder import PromptBuilder
+from src.core import DocumentProcessor
+from src.core.prompter.prompt_builder import PromptBuilder
 
 import ollama
 
@@ -53,3 +53,4 @@ llm_response = ask_llm(
 )
 
 print(llm_response)
+
