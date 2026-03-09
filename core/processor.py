@@ -14,10 +14,12 @@ class DocumentProcessor:
     Координирует парсинг и форматирование результатов для использования в LLM.
     """
 
-    def __init__(self,
-                 extract_images: bool = True,
-                 detect_tables: bool = True,
-                 detect_formulas: bool = True):
+    def __init__(
+            self,
+            extract_images: bool = True,
+            detect_tables: bool = True,
+            detect_formulas: bool = True,
+    ):
         """
         Инициализация процессора
 

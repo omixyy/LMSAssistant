@@ -16,7 +16,7 @@ try:
     PDFPLUMBER_AVAILABLE = True
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
-    logger.warning("pdfplumber не установлен. Таблицы будут извлекаться только через PyMuPDF.")
+    logger.warning('pdfplumber не установлен. Таблицы будут извлекаться только через PyMuPDF.')
 
 
 class PDFParser(Parser):
