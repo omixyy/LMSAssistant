@@ -25,6 +25,12 @@ class DOCXParser(Parser):
     Парсер для DOCX документов
     """
 
+    def __init__(self, config: Optional[Dict] = None):
+        super().__init__(config)
+
+        if not DOCX_AVAILABLE:
+            logger.warning("python-docx не установлен. DOCXParser не будет работать.")
+
     @property
     def supported_extensions(self) -> List[str]:
         return ['.docx', '.doc']
@@ -32,12 +38,6 @@ class DOCXParser(Parser):
     @property
     def parser_name(self) -> str:
         return "DOCXParser"
-
-    def __init__(self, config: Optional[Dict] = None):
-        super().__init__(config)
-
-        if not DOCX_AVAILABLE:
-            logger.warning("python-docx не установлен. DOCXParser не будет работать.")
 
     def parse(self, file_path: str, **kwargs) -> Dict[str, Any]:
         """
@@ -153,4 +153,5 @@ class DOCXParser(Parser):
         }
         for orig, latex_eq in replacements.items():
             latex = latex.replace(orig, latex_eq)
+
         return latex

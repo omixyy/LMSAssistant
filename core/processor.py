@@ -77,7 +77,8 @@ class DocumentProcessor:
 
         return self._parsers.get(ext)
 
-    def _format_for_llm(self, parse_result: Dict) -> str:
+    @staticmethod
+    def _format_for_llm(parse_result: Dict) -> str:
         """
         Форматирует результат парсинга для отправки в LLM
         """
@@ -113,7 +114,8 @@ class DocumentProcessor:
 
         return '\n'.join(parts)
 
-    def _extract_metadata(self, parse_result: Dict) -> Dict:
+    @staticmethod
+    def _extract_metadata(parse_result: Dict) -> Dict:
         """
         Извлекает метаданные из результата парсинга
         """
