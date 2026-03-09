@@ -2,7 +2,7 @@ import logging
 from typing import Optional, Dict, Tuple, List
 from pathlib import Path
 
-from .parser.factory import ParserFactory
+from .parsing.factory import ParserFactory
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

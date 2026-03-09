@@ -2,7 +2,7 @@
 Основной пакет системы проверки студенческих работ
 """
 
-from .parser import (
+from .parsing import (
     Parser, PDFParser, DOCXParser, ParserFactory,
     Formula, Table, Image, FormulaType
 )

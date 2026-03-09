@@ -1,5 +1,5 @@
 from core import DocumentProcessor
-from core.prompter.prompt_builder import PromptBuilder
+from core.prompting.prompt_builder import PromptBuilder
 from core.llm.ollama_client import OllamaClient
 
 
