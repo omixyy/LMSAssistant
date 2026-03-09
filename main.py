@@ -21,7 +21,7 @@ student_task, _ = processor.process(
 )
 
 # Простой запрос
-def ask_gemma(model_name, prompt):
+def ask_llm(model_name, prompt):
     optimal_config = {
         'model': model_name,
         'prompt': prompt,  # prompter передается отдельно, не внутри options
@@ -46,7 +46,7 @@ llm_prompt = prompt_builder.build_prompt(
 
 print(llm_prompt)
 
-llm_response = ask_gemma(
+llm_response = ask_llm(
     'deepseek-v3.1:671b-cloud',
     llm_prompt,
 )

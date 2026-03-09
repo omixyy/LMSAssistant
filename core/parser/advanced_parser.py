@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import fitz
 import re
 import logging
 from typing import Dict, List, Tuple, Any, Optional
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 try:
     import pdfplumber
     PDFPLUMBER_AVAILABLE = True
+
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
 
@@ -264,7 +265,8 @@ class AdvancedPDFParser:
         return result
 
 
-    def _has_math_operators(self, text: str) -> bool:
+    @staticmethod
+    def _has_math_operators(text: str) -> bool:
         """Проверяет наличие реальных математических операторов, а не просто символов"""
         # Игнорируем одиночные символы = + - в обычном тексте
         # Требуем комбинации, характерные для формул
@@ -297,7 +299,8 @@ class AdvancedPDFParser:
         
         return False
 
-    def _contains_only_words(self, text: str) -> bool:
+    @staticmethod
+    def _contains_only_words(text: str) -> bool:
         """Проверяет, состоит ли текст ТОЛЬКО из слов без математических операторов"""
         # Удаляем все математические символы и команды
         cleaned = re.sub(r'[=+\-*/^_{}\[\]\\$∑∏∫∂∇∞≈≠≤≥±×÷√]|\\[a-z]+', '', text, flags=re.IGNORECASE)
@@ -306,7 +309,8 @@ class AdvancedPDFParser:
         # Если после очистки осталось только буквы/пробелы/дефисы → это текст
         return bool(re.match(r'^[\sа-яa-zA-Z\-–—]+$', cleaned, re.IGNORECASE))
 
-    def _text_to_latex(self, text: str) -> str:
+    @staticmethod
+    def _text_to_latex(text: str) -> str:
         """Эвристика для конвертации текста в LaTeX (упрощённая)"""
         # Это базовая реализация; для продакшена используйте MathPix/Nougat
         latex = text
@@ -447,8 +451,9 @@ class AdvancedPDFParser:
         # (можно расширить анализом paths на странице)
         
         return images
-    
-    def _find_caption_near_bbox(self, page, bbox: Tuple, max_distance: float = 50) -> str:
+
+    @staticmethod
+    def _find_caption_near_bbox(page, bbox: Tuple, max_distance: float = 50) -> str:
         """Поиск подписи рядом с заданным bbox"""
         x0, y0, x1, y1 = bbox
         text = page.get_text('dict')
@@ -502,8 +507,9 @@ class AdvancedPDFParser:
             return candidates[0][1]
         
         return ''
-    
-    def _get_context(self, text_dict: Dict, span: Dict, max_words: int = 10) -> str:
+
+    @staticmethod
+    def _get_context(text_dict: Dict, span: Dict, max_words: int = 10) -> str:
         """Получает контекст вокруг span"""
         context_words = []
         target_bbox = span['bbox']
@@ -554,8 +560,9 @@ class AdvancedPDFParser:
             lines.append(f'«ФОРМУЛА {f.formula_type}: ${f.latex}$»')
         
         return '\n'.join(lines)
-    
-    def _bbox_overlaps_any(self, bbox: Tuple, bbox_list: List[Tuple], threshold: float = 0.5) -> bool:
+
+    @staticmethod
+    def _bbox_overlaps_any(bbox: Tuple, bbox_list: List[Tuple], threshold: float = 0.5) -> bool:
         """Проверяет перекрытие bbox с любым из списка"""
         if not bbox or not bbox_list:
             return False
