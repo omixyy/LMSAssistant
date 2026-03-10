@@ -1,5 +1,6 @@
 from core import DocumentProcessor
 from core.grading.grader import Grader
+from core.grading.inquirer import Inquirer
 from core.llm.ollama_client import OllamaClient
 from core.rubrics.rubric_generator import RubricGenerator
 from core.prompting.prompt_builder import PromptBuilder
@@ -7,7 +8,7 @@ from core.prompting.prompt_builder import PromptBuilder
 
 options = {
     "num_ctx": 64000,      # много контекста: методичка + ответ + рубрика
-    "num_predict": 1024,   # хватает на подробный JSON-отчёт
+    "num_predict": 2048,   # хватает на подробный JSON-отчёт
     "temperature": 0.2,    # максимальная детерминированность
     "top_p": 0.8,          # слегка сужаем выбор токенов
     "repeat_penalty": 1.1, # меньше повторов в тексте
@@ -57,5 +58,7 @@ rubric = (
 # print(rubric)
 
 analysis = grader.grade(student_task, student_answer, rubric)
-
+inquirer = Inquirer(analysis)
 print(analysis)
+
+print(inquirer.get_unconfident_criteria())

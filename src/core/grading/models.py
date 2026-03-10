@@ -39,6 +39,7 @@ class CriterionScore:
     score: float
     max_score: float
     justification: str
+    confidence: Optional[float] = None
 
 
 @dataclass
