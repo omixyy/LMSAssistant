@@ -1,8 +1,9 @@
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from core.llm.ollama_client import OllamaClient
 from core.prompting.prompt_builder import PromptBuilder
+from core.grading.models import Rubric
 from core.grading.models import (
     GradeBand,
     GradingResult,
@@ -23,10 +24,11 @@ class Grader:
     def llm_client(self):
         return self._llm_client
     
-    def grade(self, task: str, answer: str, use_cot: bool = True) -> GradingResult:
+    def grade(self, task: str, answer: str, rubric: Optional[Rubric] = None, use_cot: bool = True) -> GradingResult:
         prompt = self._prompt_builder.build_prompt(
             task,
             answer,
+            rubric,
             use_cot=use_cot,
         )
 

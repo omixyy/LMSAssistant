@@ -1,6 +1,8 @@
 from core import DocumentProcessor
 from core.grading.grader import Grader
 from core.llm.ollama_client import OllamaClient
+from core.rubrics.rubric_generator import RubricGenerator
+from core.prompting.prompt_builder import PromptBuilder
 
 
 options = {
@@ -17,6 +19,10 @@ processor = DocumentProcessor(
     detect_formulas=True,
 )
 
+rubric_generator = RubricGenerator(ollama_client)
+
+grader = Grader(ollama_client)
+
 # Обработка PDF
 student_answer, _ = processor.process(
     '../test_files/main.pdf',
@@ -26,21 +32,16 @@ student_task, _ = processor.process(
     '../test_files/Методические указания к лабораторной работе 1.01.pdf',
 )
 
-grader = Grader(ollama_client)
-analysis = grader.grade(student_task, student_answer)
+rubric = (
+    rubric_generator.generate_from_text(
+        "lab_1",
+        "Рубрика проверки лабораторной работы №1",
+        student_task,
+    )
+)
 
-print(analysis.total_score)
+print(rubric)
 
-# prompt_builder = PromptBuilder()
+analysis = grader.grade(student_task, student_answer, rubric)
 
-# prompt = prompt_builder.build_prompt(
-#     student_task,
-#     student_answer,
-# )
-
-# print(prompt)
-
-# response = ollama_client.generate(prompt)
-
-# print(response)
-
+print(analysis)
