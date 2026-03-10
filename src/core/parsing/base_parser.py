@@ -100,8 +100,8 @@ class Parser(ABC):
         """Логирование завершения парсинга"""
         logger.info(
             f'[{self.parser_name}] Парсинг завершён. '
-            f'Страниц: {result['metadata'].get('pages', 0)}, '
-            f'Формул: {result['metadata'].get('formulas_count', 0)}, '
-            f'Таблиц: {result['metadata'].get('tables_count', 0)}, '
-            f'Изображений: {result['metadata'].get('images_count', 0)}'
+            f'Страниц: {result["metadata"].get("pages", 0)}, '
+            f'Формул: {result["metadata"].get("formulas_count", 0)}, '
+            f'Таблиц: {result["metadata"].get("tables_count", 0)}, '
+            f'Изображений: {result["metadata"].get("images_count", 0)}'
         )
