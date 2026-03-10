@@ -341,6 +341,14 @@ class PDFParser(Parser):
                 for span in line.get('spans', [])
             ).strip()
 
+            # Отсеиваем очевидно текстовые блоки (сплошная проза без математики)
+            if self._looks_like_prose(block_text):
+                continue
+
+            # Отсеиваем нумерованные списки без явной математики (например "1. Постройте гистограмму...")
+            if re.match(r'^\s*\d+[\.\)]\s+', block_text) and not self._has_math_operators(block_text):
+                continue
+
             if (is_centered and
                     len(block_text) < 200 and
                     self._has_math_content(block_text) and
@@ -382,8 +390,18 @@ class PDFParser(Parser):
                     })
                     return result
 
-        # Отсеиваем обычный текст
+        # Отсеиваем очевидно обычный текст (длинные слова, знаки препинания, служебные слова)
         if self._looks_like_prose(text_stripped):
+            return result
+
+        # Если нет ни математических операторов, ни «сильных» математических символов (кроме скобок),
+        # то с большой вероятностью это не формула
+        if (not self._has_math_operators(text_stripped) and
+                not any(ch in (self.math_symbols - set('()')) for ch in text_stripped)):
+            return result
+
+        # Дополнительный фильтр: нумерованные пункты без математики (например "3. Вычислить среднее значение...")
+        if re.match(r'^\s*\d+[\.\)]\s+', text_stripped) and not self._has_math_operators(text_stripped):
             return result
 
         # Вычисляем вероятность
@@ -510,8 +528,8 @@ class PDFParser(Parser):
         caption_patterns = [
             r'(?:Рисунок|Рис\.|Рис)\s*\.?\s*\d+\s*[:.—-]?\s*([^\n\.]+)',
             r'(?:Figure|Fig\.)\s*\.?\s*\d+\s*[:.—-]?\s*([^\n\.]+)',
-            r'(?:Таблица|Табл\.|Таблиц)\s*\.?\s*\d+\\s*[:.—-]?\s*([^\n\.]+)',
-            r'(?:Table|Tab\.)\s*\.?\s*\d+\\s*[:.—-]?\s*([^\n\.]+)',
+            r'(?:Таблица|Табл\.|Таблиц)\s*\.?\s*\d+\s*[:.—-]?\s*([^\n\.]+)',
+            r'(?:Table|Tab\.)\s*\.?\s*\d+\s*[:.—-]?\s*([^\n\.]+)',
         ]
 
         candidates = []

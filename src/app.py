@@ -6,9 +6,12 @@ from core.prompting.prompt_builder import PromptBuilder
 
 
 options = {
-    'num_ctx': 64000,
-    'num_predict': 2048,
-    'temperature': 0.3,
+    "num_ctx": 64000,      # много контекста: методичка + ответ + рубрика
+    "num_predict": 1024,   # хватает на подробный JSON-отчёт
+    "temperature": 0.2,    # максимальная детерминированность
+    "top_p": 0.8,          # слегка сужаем выбор токенов
+    "repeat_penalty": 1.1, # меньше повторов в тексте
+    "seed": 42,            # фиксированный сид, если модель/ollama поддерживают
 }
 
 ollama_client = OllamaClient('deepseek-v3.1:671b-cloud', options)
@@ -20,6 +23,8 @@ processor = DocumentProcessor(
 )
 
 rubric_generator = RubricGenerator(ollama_client)
+
+prompt_builder = PromptBuilder()
 
 grader = Grader(ollama_client)
 
@@ -40,7 +45,16 @@ rubric = (
     )
 )
 
-print(rubric)
+# prompt = prompt_builder.build_prompt(
+#     student_task,
+#     student_answer,
+#     rubric=rubric,
+#     use_cot=True,
+# )
+
+# print(prompt)
+
+# print(rubric)
 
 analysis = grader.grade(student_task, student_answer, rubric)
 
