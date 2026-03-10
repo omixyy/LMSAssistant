@@ -94,14 +94,14 @@ class Parser(ABC):
 
     def _log_parse_start(self, file_path: str) -> None:
         """Логирование начала парсинга"""
-        logger.info(f"[{self.parser_name}] Начинаю парсинг: {file_path}")
+        logger.info(f'[{self.parser_name}] Начинаю парсинг: {file_path}')
 
     def _log_parse_complete(self, result: Dict) -> None:
         """Логирование завершения парсинга"""
         logger.info(
-            f"[{self.parser_name}] Парсинг завершён. "
-            f"Страниц: {result['metadata'].get('pages', 0)}, "
-            f"Формул: {result['metadata'].get('formulas_count', 0)}, "
-            f"Таблиц: {result['metadata'].get('tables_count', 0)}, "
-            f"Изображений: {result['metadata'].get('images_count', 0)}"
+            f'[{self.parser_name}] Парсинг завершён. '
+            f'Страниц: {result['metadata'].get('pages', 0)}, '
+            f'Формул: {result['metadata'].get('formulas_count', 0)}, '
+            f'Таблиц: {result['metadata'].get('tables_count', 0)}, '
+            f'Изображений: {result['metadata'].get('images_count', 0)}'
         )

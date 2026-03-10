@@ -5,9 +5,9 @@ from enum import Enum
 
 class FormulaType(Enum):
     """Тип формулы"""
-    INLINE = "inline"
-    DISPLAY = "display"
-    DETECTED = "detected"
+    INLINE = 'inline'
+    DISPLAY = 'display'
+    DETECTED = 'detected'
 
 
 @dataclass
@@ -52,25 +52,25 @@ class Table:
     def to_markdown(self) -> str:
         """Конвертация в Markdown формат"""
         if not self.data:
-            return ""
+            return ''
 
         lines = []
 
         # Заголовок таблицы
         if self.caption:
-            lines.append(f"*{self.caption}*")
+            lines.append(f'*{self.caption}*')
 
         # Формируем Markdown таблицу
         header = ' | '.join(self.headers) if self.headers else ' | '.join(str(c) for c in self.data[0])
         separator = '---|' * (self.num_cols - 1) + '---'
 
-        lines.append(f"| {header} |")
-        lines.append(f"| {separator} |")
+        lines.append(f'| {header} |')
+        lines.append(f'| {separator} |')
 
         # Данные (начиная со второй строки, если первая использована как заголовок)
         start_row = 0 if self.headers else 1
         for row in self.data[start_row:]:
-            lines.append(f"| {' | '.join(str(c) for c in row)} |")
+            lines.append(f'| {' | '.join(str(c) for c in row)} |')
 
         return '\n'.join(lines)
 

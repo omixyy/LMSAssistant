@@ -46,12 +46,12 @@ class DocumentProcessor:
         Returns:
             Tuple[обогащённый_текст, метаданные]
         """
-        logger.info(f"Обработка файла: {file_path}")
+        logger.info(f'Обработка файла: {file_path}')
 
         # Получаем парсер
         parser = self._get_parser(file_path)
         if not parser:
-            raise ValueError(f"Не найден парсер для файла: {file_path}")
+            raise ValueError(f'Не найден парсер для файла: {file_path}')
 
         # Парсим документ
         parse_result = parser.parse(file_path, output_dir=output_dir)
@@ -72,9 +72,9 @@ class DocumentProcessor:
             parser = ParserFactory.create_parser(file_path, self.config)
             if parser:
                 self._parsers[ext] = parser
-                logger.info(f"Создан парсер {parser.parser_name} для {ext}")
+                logger.info(f'Создан парсер {parser.parser_name} для {ext}')
             else:
-                logger.error(f"Не удалось создать парсер для {ext}")
+                logger.error(f'Не удалось создать парсер для {ext}')
                 return None
 
         return self._parsers.get(ext)
@@ -142,8 +142,8 @@ class DocumentProcessor:
                 result = self.process(file_path, output_dir)
                 results.append(result)
             except Exception as e:
-                logger.error(f"Ошибка при обработке {file_path}: {e}")
-                results.append((f"Ошибка: {e}", {'filename': Path(file_path).name, 'error': str(e)}))
+                logger.error(f'Ошибка при обработке {file_path}: {e}')
+                results.append((f'Ошибка: {e}', {'filename': Path(file_path).name, 'error': str(e)}))
         return results
 
     @property
@@ -154,4 +154,4 @@ class DocumentProcessor:
     def clear_cache(self) -> None:
         """Очистка кэша парсеров"""
         self._parsers.clear()
-        logger.info("Кэш парсеров очищен")
+        logger.info('Кэш парсеров очищен')

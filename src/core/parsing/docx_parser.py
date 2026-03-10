@@ -29,7 +29,7 @@ class DOCXParser(Parser):
         super().__init__(config)
 
         if not DOCX_AVAILABLE:
-            logger.warning("python-docx не установлен. DOCXParser не будет работать.")
+            logger.warning('python-docx не установлен. DOCXParser не будет работать.')
 
     @property
     def supported_extensions(self) -> List[str]:
@@ -37,7 +37,7 @@ class DOCXParser(Parser):
 
     @property
     def parser_name(self) -> str:
-        return "DOCXParser"
+        return 'DOCXParser'
 
     def parse(self, file_path: str, **kwargs) -> Dict[str, Any]:
         """
@@ -46,7 +46,7 @@ class DOCXParser(Parser):
         self._log_parse_start(file_path)
 
         if not DOCX_AVAILABLE:
-            raise ImportError("python-docx не установлен. Установите: pip install python-docx")
+            raise ImportError('python-docx не установлен. Установите: pip install python-docx')
 
         result = self._init_result_dict(Path(file_path).name)
 
@@ -88,7 +88,7 @@ class DOCXParser(Parser):
                         page=1,
                         bbox=(0, 0, 0, 0),
                         data=table_data,
-                        caption=f"Таблица {table_idx + 1}"
+                        caption=f'Таблица {table_idx + 1}'
                     )
                     tables.append(extracted_table)
 

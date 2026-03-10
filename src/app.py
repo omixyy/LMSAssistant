@@ -1,5 +1,5 @@
 from core import DocumentProcessor
-from core.prompting.prompt_builder import PromptBuilder
+from core.grading.grader import Grader
 from core.llm.ollama_client import OllamaClient
 
 
@@ -17,25 +17,30 @@ processor = DocumentProcessor(
     detect_formulas=True,
 )
 
-prompt_builder = PromptBuilder()
-
 # Обработка PDF
 student_answer, _ = processor.process(
-    '../test_files/report.pdf',
+    '../test_files/main.pdf',
 )
 
 student_task, _ = processor.process(
     '../test_files/Методические указания к лабораторной работе 1.01.pdf',
 )
 
-prompt = prompt_builder.build_prompt(
-    student_task,
-    student_answer,
-)
+grader = Grader(ollama_client)
+analysis = grader.grade(student_task, student_answer)
 
-print(prompt)
+print(analysis.total_score)
 
-response = ollama_client.generate(prompt)
+# prompt_builder = PromptBuilder()
 
-print(response)
+# prompt = prompt_builder.build_prompt(
+#     student_task,
+#     student_answer,
+# )
+
+# print(prompt)
+
+# response = ollama_client.generate(prompt)
+
+# print(response)
 

@@ -30,7 +30,7 @@ class PDFParser(Parser):
 
     @property
     def parser_name(self) -> str:
-        return "PDFParser"
+        return 'PDFParser'
 
     def __init__(self, config: Optional[Dict] = None):
         super().__init__(config)
@@ -84,9 +84,9 @@ class PDFParser(Parser):
         if self.detect_tables and PDFPLUMBER_AVAILABLE and not extract_text_only:
             try:
                 pdfplumber_doc = pdfplumber.open(file_path)
-                logger.debug("pdfplumber успешно открыл документ")
+                logger.debug('pdfplumber успешно открыл документ')
             except Exception as e:
-                logger.warning(f"Не удалось открыть PDF через pdfplumber: {e}")
+                logger.warning(f'Не удалось открыть PDF через pdfplumber: {e}')
                 pdfplumber_doc = None
 
         result = self._init_result_dict(Path(file_path).name)
@@ -102,7 +102,7 @@ class PDFParser(Parser):
                 if extract_text_only:
                     # Только текст, без анализа
                     text = page.get_text()
-                    all_text.append(f"\n--- Страница {page_num + 1} ---\n{text}")
+                    all_text.append(f'\n--- Страница {page_num + 1} ---\n{text}')
                 else:
                     # Полный анализ
                     text_dict = page.get_text('dict')
