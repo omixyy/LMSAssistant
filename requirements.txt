@@ -4,3 +4,4 @@ pathlib~=1.0.1
 pillow~=12.1.1
 ollama~=0.6.1
 python-docx~=1.1.0
+chromadb==1.5.5

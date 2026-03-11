@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from core.grading.models import GradingResult, CriterionScore
+from core.grading.models import GradingResult, CriterionScore, QAPair, Question
 
 
 class Inquirer:
@@ -17,6 +17,7 @@ class Inquirer:
     def __init__(self, grading_result: GradingResult, confidence_threshold: float = 0.6) -> None:
         self._result = grading_result
         self._confidence_threshold = confidence_threshold
+        self._qa_pairs: List[QAPair] = []
 
     @property
     def grading_result(self) -> GradingResult:
@@ -25,6 +26,14 @@ class Inquirer:
     @property
     def confidence_threshold(self) -> float:
         return self._confidence_threshold
+
+    @property
+    def qa_pairs(self) -> List[QAPair]:
+        """
+        Возвращает локально накопленные пары вопрос–ответ
+        для текущего результата проверки.
+        """
+        return self._qa_pairs
 
     def get_unconfident_criteria(self, top_k: Optional[int] = None) -> List[CriterionScore]:
         """
@@ -50,3 +59,48 @@ class Inquirer:
             return unconfident_sorted[:top_k]
 
         return unconfident_sorted
+
+    def generate_questions(self, top_k: Optional[int] = None) -> List[Question]:
+        """
+        Сгенерировать список уточняющих вопросов для преподавателя
+        по критериям с наименьшей уверенностью модели.
+
+        Вопросы формируются шаблонно, без использования LLM.
+        """
+        questions: List[Question] = []
+        unconfident = self.get_unconfident_criteria(top_k=top_k)
+
+        for idx, cs in enumerate[CriterionScore](unconfident, start=1):
+            conf_str = (
+                f'{cs.confidence:.2f}' if cs.confidence is not None else 'не указана'
+            )
+            q_id = f"q_{cs.rubric_item_id}_{idx}"
+            text = (
+                'Поясните, пожалуйста, как правильно трактовать критерий '
+                f'«{cs.rubric_item_id}» в случаях, подобных этой работе.\n'
+                f'Модель поставила {cs.score} из {cs.max_score} баллов '
+                f'(уверенность: {conf_str}) со следующим обоснованием:\n'
+                f'«{cs.justification}».\n'
+                'Какие признаки Вы считаете ключевыми для этого критерия, '
+                'и в каких ситуациях оценку следует повышать или понижать?'
+            )
+
+            questions.append(
+                Question(
+                    id=q_id,
+                    text=text,
+                    related_rubric_item_id=cs.rubric_item_id,
+                )
+            )
+
+        return questions
+
+    def push_qa_pair(self, question: Question, answer: str) -> None:
+        """
+        Добавить пару вопрос–ответ в локальное хранилище INQUIRER'а.
+
+        На этом уровне мы просто накапливаем QAPair в памяти;
+        сохранение в внешние хранилища (например, ChromaDB) может
+        выполняться на уровне сервисов более высокого уровня.
+        """
+        self._qa_pairs.append(QAPair(question=question, answer=answer))
