@@ -91,6 +91,13 @@ class Question:
     text: str
     related_rubric_item_id: Optional[str] = None
 
+    def __str__(self) -> str:
+        return f"""
+        ID: {self.id}
+        Text: {self.text}
+        Related Rubric Item ID: {self.related_rubric_item_id}
+        """
+
 
 @dataclass
 class QuestionRank:

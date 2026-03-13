@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 from chromadb.api.types import Document
 from chromadb.base_types import Metadata
 from chromadb.api.types import ID
-
-from __future__ import annotations
 
 from typing import Any, Dict, Optional, Sequence
 

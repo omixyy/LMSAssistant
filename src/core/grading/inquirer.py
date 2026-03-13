@@ -17,7 +17,6 @@ class Inquirer:
     def __init__(self, grading_result: GradingResult, confidence_threshold: float = 0.6) -> None:
         self._result = grading_result
         self._confidence_threshold = confidence_threshold
-        self._qa_pairs: List[QAPair] = []
 
     @property
     def grading_result(self) -> GradingResult:
@@ -26,14 +25,6 @@ class Inquirer:
     @property
     def confidence_threshold(self) -> float:
         return self._confidence_threshold
-
-    @property
-    def qa_pairs(self) -> List[QAPair]:
-        """
-        Возвращает локально накопленные пары вопрос–ответ
-        для текущего результата проверки.
-        """
-        return self._qa_pairs
 
     def get_unconfident_criteria(self, top_k: Optional[int] = None) -> List[CriterionScore]:
         """
@@ -94,13 +85,3 @@ class Inquirer:
             )
 
         return questions
-
-    def push_qa_pair(self, question: Question, answer: str) -> None:
-        """
-        Добавить пару вопрос–ответ в локальное хранилище INQUIRER'а.
-
-        На этом уровне мы просто накапливаем QAPair в памяти;
-        сохранение в внешние хранилища (например, ChromaDB) может
-        выполняться на уровне сервисов более высокого уровня.
-        """
-        self._qa_pairs.append(QAPair(question=question, answer=answer))

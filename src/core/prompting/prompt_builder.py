@@ -145,67 +145,68 @@ class PromptBuilder:
 
         # Полный пример структуры ответа
         example_response = {
-            'task_analysis': {
-                'summary': 'Краткое описание того, что требовалось сделать',
-                'key_requirements': ['требование 1', 'требование 2'],
-                'expected_outcome': 'Ожидаемый результат'
+            "task_analysis": {
+                "summary": "Краткое описание того, что требовалось сделать",
+                "key_requirements": ["требование 1", "требование 2"],
+                "expected_outcome": "Ожидаемый результат"
             },
-            'work_analysis': {
-                'summary': 'Что сделал студент',
-                'sections_present': ['введение', 'теория', 'расчеты'],
-                'methods_used': ['бинарный поиск', 'расчет погрешностей']
+            "work_analysis": {
+                "summary": "Что сделал студент",
+                "sections_present": ["введение", "теория", "расчеты"],
+                "methods_used": ["бинарный поиск", "расчет погрешностей"]
             },
-            'task_completion': {
-                'overall_match': 'полное/частичное/не соответствует',
-                'completed_items': [
+            "task_completion": {
+                "overall_match": "полное/частичное/не соответствует",
+                "completed_items": [
                     {
-                        'item': 'пункт задания 1',
-                        'status': 'выполнено/частично/не выполнено',
-                        'comment': 'комментарий'
+                        "item": "пункт задания 1",
+                        "status": "выполнено/частично/не выполнено",
+                        "comment": "комментарий"
                     }
                 ],
-                'missing_items': ['чего не хватает']
+                "missing_items": ["чего не хватает"]
             },
-            'formulas_check': [
+            "formulas_check": [
                 {
-                    'formula': 'формула',
-                    'correct': 'True / False',
-                    'errors': 'описание ошибки если есть'
+                    "formula": "формула",
+                    "correct": "True / False",
+                    "errors": "описание ошибки если есть"
                 }
             ],
-            'graphics_check': [
+            "graphics_check": [
                 {
-                    'type': 'график/таблица',
-                    'correct': 'True / False',
-                    'issues': 'проблемы если есть'
+                    "type": "график/таблица",
+                    "correct": "True / False",
+                    "issues": "проблемы если есть"
                 }
             ],
-            'criteria_scores': [
+            "criteria_scores": [
                 {
-                    'name': 'Соответствие тематике',
-                    'score': 8,
-                    'max_score': 10,
-                    'justification': 'Почему такая оценка',
-                    'confidence': 0.85
+                    "name": "Соответствие тематике",
+                    "score": 8,
+                    "max_score": 10,
+                    "justification": "Почему такая оценка",
+                    "confidence": 0.85
                 },
                 {
-                    'name': 'Полнота выполнения',
-                    'score': 20,
-                    'max_score': 25,
-                    'justification': 'Почему такая оценка',
-                    'confidence': 0.73
+                    "name": "Полнота выполнения",
+                    "score": 20,
+                    "max_score": 25,
+                    "justification": "Почему такая оценка",
+                    "confidence": 0.73
                 }
             ],
-            'overall_score': 75,
-            'max_score': 100,
-            'grade': 'хорошо',
-            'feedback': {
-                'strengths': ['сильная сторона 1', 'сильная сторона 2'],
-                'weaknesses': ['недостаток 1', 'недостаток 2'],
-                'recommendations': ['рекомендация 1', 'рекомендация 2'],
-                'summary': 'Общий вывод о работе'
+            "overall_score": 75,
+            "max_score": 100,
+            "grade": "хорошо",
+            "feedback": {
+                "strengths": ["сильная сторона 1", "сильная сторона 2"],
+                "weaknesses": ["недостаток 1", "недостаток 2"],
+                "recommendations": ["рекомендация 1", "рекомендация 2"],
+                "summary": "Общий вывод о работе"
             }
         }
+
 
         return f"""
         ТРЕБОВАНИЯ К ФОРМАТУ ОТВЕТА:

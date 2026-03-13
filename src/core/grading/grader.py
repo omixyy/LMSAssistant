@@ -53,6 +53,7 @@ class Grader:
                 lines = lines[1:-1]
                 cleaned = '\n'.join(lines).strip()
 
+        print(cleaned)
         return json.loads(cleaned)
 
     @staticmethod
@@ -65,6 +66,7 @@ class Grader:
         for item in raw.get('criteria_scores', []):
             criteria_scores.append(
                 CriterionScore(
+                    confidence=float(item.get('confidence')),
                     rubric_item_id=item.get('name', ''),
                     score=float(item.get('score', 0)),
                     max_score=float(item.get('max_score', 0)),

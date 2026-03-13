@@ -85,7 +85,7 @@ class QARetriever:
         metadatas = result.get('metadatas', [[]])[0]
 
         pairs: List[QAPair] = []
-        for doc, meta in zip[tuple[Document, Metadata]](documents, metadatas):
+        for doc, meta in zip(documents, metadatas):
             question_text = meta.get('question_text', '')
             question_id = meta.get('question_id', '')
             related_rubric_item_id = meta.get('rubric_item_id') or None

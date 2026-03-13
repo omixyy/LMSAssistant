@@ -5,15 +5,13 @@ from core.llm.ollama_client import OllamaClient
 from core.rubrics.rubric_generator import RubricGenerator
 from core.grading.models import Question, QAPair
 from core.rag.retriever import QARetriever
+from core.rag.vector_store import VectorStore
 
 from chromadb import PersistentClient
 
-chroma_client = PersistentClient(path='./chroma_db')
-qa_retriever = QARetriever(client=chroma_client, collection_name='qa_pairs')
-
 options = {
     "num_ctx": 64000,      # много контекста: методичка + ответ + рубрика
-    "num_predict": 2048,   # хватает на подробный JSON-отчёт
+    "num_predict": 4096,   # хватает на подробный JSON-отчёт
     "temperature": 0.2,    # максимальная детерминированность
     "top_p": 0.8,          # слегка сужаем выбор токенов
     "repeat_penalty": 1.1, # меньше повторов в тексте
@@ -62,9 +60,35 @@ rubric = (
 # print(rubric)
 
 analysis = grader.grade(student_task, student_answer, rubric)
+
+chroma_client = PersistentClient(path='./chroma_db')
+qa_retriever = QARetriever(client=chroma_client, collection_name='qa_pairs')
+materials_store = VectorStore(client=chroma_client, collection_name="teaching_materials")
+
 inquirer = Inquirer(analysis)
 questions = inquirer.generate_questions()
 
-print(analysis)
+# materials_store.add_documents(
+#     ids=["guidelines_lab1", "sample_report_lab1"],
+#     texts=[
+#         open("docs/guidelines_lab1.txt", encoding="utf-8").read(),
+#         open("docs/sample_report_lab1.txt", encoding="utf-8").read(),
+#     ],
+#     metadatas=[
+#         {"type": "guidelines", "lab": "1.01"},
+#         {"type": "sample_report", "lab": "1.01"},
+#     ],
+# )
 
-print(inquirer.get_unconfident_criteria())
+# print(analysis)
+
+# print(inquirer.get_unconfident_criteria())
+
+qa_pairs = []
+print(questions)
+for question in questions:
+    print(str(question))
+    qa_pairs.append(QAPair(question=question, answer=input()))
+
+qa_retriever.add_pairs(qa_pairs)
+print(qa_retriever.query(questions[0].text, top_k=1, rubric_item_id=questions[0].related_rubric_item_id))
