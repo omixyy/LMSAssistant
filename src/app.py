@@ -3,7 +3,8 @@ from core.grading.grader import Grader
 from core.grading.inquirer import Inquirer
 from core.llm.ollama_client import OllamaClient
 from core.rubrics.rubric_generator import RubricGenerator
-from core.grading.models import Question, QAPair
+from core.grading.models import QAPair
+from core.grading.reflector import Reflector
 from core.rag.retriever import QARetriever
 from core.rag.vector_store import VectorStore
 
@@ -11,7 +12,7 @@ from chromadb import PersistentClient
 
 options = {
     "num_ctx": 64000,      # много контекста: методичка + ответ + рубрика
-    "num_predict": 4096,   # хватает на подробный JSON-отчёт
+    "num_predict": 8192,   # хватает на подробный JSON-отчёт
     "temperature": 0.2,    # максимальная детерминированность
     "top_p": 0.8,          # слегка сужаем выбор токенов
     "repeat_penalty": 1.1, # меньше повторов в тексте
@@ -65,6 +66,8 @@ chroma_client = PersistentClient(path='./chroma_db')
 qa_retriever = QARetriever(client=chroma_client, collection_name='qa_pairs')
 materials_store = VectorStore(client=chroma_client, collection_name="teaching_materials")
 
+reflector = Reflector(analysis, ollama_client)
+
 inquirer = Inquirer(analysis)
 questions = inquirer.generate_questions()
 
@@ -85,10 +88,10 @@ questions = inquirer.generate_questions()
 # print(inquirer.get_unconfident_criteria())
 
 qa_pairs = []
-print(questions)
 for question in questions:
     print(str(question))
     qa_pairs.append(QAPair(question=question, answer=input()))
 
 qa_retriever.add_pairs(qa_pairs)
-print(qa_retriever.query(questions[0].text, top_k=1, rubric_item_id=questions[0].related_rubric_item_id))
+reflection = reflector.reflect()
+print(reflection)

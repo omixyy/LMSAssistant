@@ -1,39 +1,34 @@
 import json
 from typing import Any, Dict
 
-from core.grading.models import GradingResult
+from core.grading.base_grading import GradingStep
+from core.grading.models import (
+    GradingResult,
+    ReflectorResult,
+    ReflectorIssue,
+    ReflectorCorrection,
+)
 from core.llm.ollama_client import OllamaClient
 
 
-class Reflector:
+class Reflector(GradingStep):
     """
     LLM-рефлектор: вторая модель, которая анализирует результат GRADING
     и пытается найти возможные ошибки/несогласованности в оценивании.
     """
 
     def __init__(self, grading_result: GradingResult, client: OllamaClient) -> None:
+        super().__init__(client)
         self._grading_result = grading_result
-        self._client = client
 
     @property
     def grading_result(self) -> GradingResult:
         return self._grading_result
 
-    @property
-    def client(self) -> OllamaClient:
-        return self._client
-
-    def reflect(self) -> Dict[str, Any]:
+    def reflect(self) -> ReflectorResult:
         """
-        Запускает LLM для самопроверки результата GRADING.
-
-        На вход LLM подаётся исходный JSON-ответ первой модели
-        (raw_model_output). LLM должна:
-        - указать, какие критерии могли быть недооценены/переоценены;
-        - объяснить, почему она так считает;
-        - опционально предложить скорректированные оценки.
-
-        Возвращает разобранный JSON-ответ в виде словаря.
+        Запускает LLM для самопроверки результата GRADING,
+        возвращает доменную модель ReflectorResult.
         """
         if self._grading_result.raw_model_output is None:
             raise ValueError(
@@ -87,33 +82,34 @@ class Reflector:
         {grading_json}
         ```
         """
-        response_text = self._client.generate(prompt)
-        return self._parse_json_response(response_text)
+        raw = self._run_llm(prompt)
+        return self.map_result(raw)
 
-    @staticmethod
-    def _parse_json_response(response_text: str) -> Dict[str, Any]:
-        """
-        Аккуратно парсит JSON-ответ от LLM, удаляя возможные обёртки
-        ```json ... ``` и лишний текст до/после основного JSON.
-        """
-        cleaned = response_text.strip()
-
-        if cleaned.startswith('```'):
-            lines = cleaned.splitlines()
-            if len(lines) >= 3:
-                lines = lines[1:-1]
-                cleaned = '\n'.join(lines).strip()
-
-        try:
-            return json.loads(cleaned)
-        except json.JSONDecodeError:
-            start = cleaned.find('{')
-            end = cleaned.rfind('}')
-            if start != -1 and end != -1 and end > start:
-                snippet = cleaned[start : end + 1]
-                try:
-                    return json.loads(snippet)
-                except json.JSONDecodeError as e:
-                    raise ValueError('REFLECTOR: не удалось распарсить JSON-ответ LLM') from e
-
-            raise ValueError('REFLECTOR: ответ LLM не содержит корректного JSON')
+    def map_result(self, raw: Dict[str, Any]) -> ReflectorResult:
+        """Преобразует сырой JSON-ответ REFLECTOR в ReflectorResult."""
+        issues = []
+        for item in raw.get('issues', []):
+            issues.append(
+                ReflectorIssue(
+                    rubric_item_id=str(item.get('rubric_item_id', '')),
+                    problem_type=str(item.get('problem_type', '')),
+                    explanation=str(item.get('explanation', '')),
+                    current_score=float(item.get('current_score', 0)),
+                    current_max_score=float(item.get('current_max_score', 0)),
+                )
+            )
+        corrections = []
+        for item in raw.get('suggested_corrections', []):
+            corrections.append(
+                ReflectorCorrection(
+                    rubric_item_id=str(item.get('rubric_item_id', '')),
+                    suggested_score=float(item.get('suggested_score', 0)),
+                    reason=str(item.get('reason', '')),
+                )
+            )
+        return ReflectorResult(
+            issues=issues,
+            suggested_corrections=corrections,
+            overall_comment=str(raw.get('overall_comment', '')),
+            raw=raw,
+        )

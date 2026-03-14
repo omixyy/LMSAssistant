@@ -133,3 +133,62 @@ class RubricUpdate:
     updated_rubric: Rubric
     applied_rules: List[AdaptationRule] = field(default_factory=list)
 
+
+# --- Результаты этапов INQUIRING, REFLECTOR, REFINER ---
+
+
+@dataclass
+class InquirerResult:
+    """
+    Результат этапа INQUIRING: список уточняющих вопросов
+    по критериям с низкой уверенностью модели.
+    """
+
+    questions: List[Question]
+    unconfident_criteria: List[CriterionScore]
+    raw: Optional[Any] = None
+
+
+@dataclass
+class ReflectorIssue:
+    """Один проблемный критерий из вывода REFLECTOR."""
+
+    rubric_item_id: str
+    problem_type: str  # underestimated / overestimated / inconsistent / unclear
+    explanation: str
+    current_score: float
+    current_max_score: float
+
+
+@dataclass
+class ReflectorCorrection:
+    """Предложенная REFLECTOR'ом корректировка оценки по критерию."""
+
+    rubric_item_id: str
+    suggested_score: float
+    reason: str
+
+
+@dataclass
+class ReflectorResult:
+    """
+    Результат этапа REFLECTOR: анализ ошибок GRADING
+    и предложенные корректировки (без финальной оценки).
+    """
+
+    issues: List[ReflectorIssue]
+    suggested_corrections: List[ReflectorCorrection]
+    overall_comment: str
+    raw: Optional[Any] = None
+
+
+@dataclass
+class RefinerResult:
+    """
+    Результат этапа REFINER: финальная оценка и отзыв
+    после учёта рефлексии (без confidence по критериям).
+    """
+
+    refined_grading: GradingResult
+    raw: Optional[Any] = None
+
