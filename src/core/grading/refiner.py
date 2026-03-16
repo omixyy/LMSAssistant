@@ -12,31 +12,6 @@ from core.grading.models import (
 from core.llm.ollama_client import OllamaClient
 
 
-def _reflector_to_dict(reflector_result: Union[ReflectorResult, Dict[str, Any]]) -> Dict[str, Any]:
-    """Приводит ReflectorResult или dict к dict для подстановки в промпт."""
-    if isinstance(reflector_result, dict):
-        return reflector_result
-    if getattr(reflector_result, 'raw', None) is not None:
-        return reflector_result.raw
-    return {
-        'issues': [
-            {
-                'rubric_item_id': i.rubric_item_id,
-                'problem_type': i.problem_type,
-                'explanation': i.explanation,
-                'current_score': i.current_score,
-                'current_max_score': i.current_max_score,
-            }
-            for i in reflector_result.issues
-        ],
-        'suggested_corrections': [
-            {'rubric_item_id': c.rubric_item_id, 'suggested_score': c.suggested_score, 'reason': c.reason}
-            for c in reflector_result.suggested_corrections
-        ],
-        'overall_comment': reflector_result.overall_comment,
-    }
-
-
 class Refiner(GradingStep):
     def __init__(
         self,
@@ -49,7 +24,7 @@ class Refiner(GradingStep):
     ) -> None:
         super().__init__(client)
         self._rubric = rubric
-        self._reflector_result = _reflector_to_dict(reflector_result)
+        self._reflector_result = self._reflector_to_dict(reflector_result)
         self._grading_result = grading_result
         self._task = task
         self._answer = answer
@@ -174,3 +149,28 @@ class Refiner(GradingStep):
             raw_model_output=raw,
         )
         return RefinerResult(refined_grading=refined_grading, raw=raw)
+    
+    @staticmethod
+    def _reflector_to_dict(reflector_result: Union[ReflectorResult, Dict[str, Any]]) -> Dict[str, Any]:
+        """Приводит ReflectorResult или dict к dict для подстановки в промпт."""
+        if isinstance(reflector_result, dict):
+            return reflector_result
+        if getattr(reflector_result, 'raw', None) is not None:
+            return reflector_result.raw
+        return {
+            'issues': [
+                {
+                    'rubric_item_id': i.rubric_item_id,
+                    'problem_type': i.problem_type,
+                    'explanation': i.explanation,
+                    'current_score': i.current_score,
+                    'current_max_score': i.current_max_score,
+                }
+                for i in reflector_result.issues
+            ],
+            'suggested_corrections': [
+                {'rubric_item_id': c.rubric_item_id, 'suggested_score': c.suggested_score, 'reason': c.reason}
+                for c in reflector_result.suggested_corrections
+            ],
+            'overall_comment': reflector_result.overall_comment,
+        }

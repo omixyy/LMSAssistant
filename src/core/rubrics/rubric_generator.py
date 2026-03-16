@@ -90,7 +90,7 @@ class RubricGenerator:
             if len(lines) >= 3:
                 lines = lines[1:-1]
                 cleaned = "\n".join(lines).strip()
-
+        print(cleaned)
         return json.loads(cleaned)
 
     @staticmethod

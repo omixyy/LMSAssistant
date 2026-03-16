@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from core.grading.models import (
-    GradingResult, 
-    CriterionScore, 
-    Question,
-)
+from core.grading.models import GradingResult, CriterionScore, Question
 
 
 class Inquirer:

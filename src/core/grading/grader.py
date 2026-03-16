@@ -3,12 +3,7 @@ from typing import Any, Dict, Optional
 
 from core.llm.ollama_client import OllamaClient
 from core.prompting.prompt_builder import PromptBuilder
-from core.grading.models import Rubric
-from core.grading.models import (
-    GradeBand,
-    GradingResult,
-    CriterionScore,
-)
+from core.grading.models import Rubric, GradeBand, GradingResult, CriterionScore
 
 
 class Grader:

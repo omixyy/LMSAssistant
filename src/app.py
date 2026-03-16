@@ -5,6 +5,7 @@ from core.llm.ollama_client import OllamaClient
 from core.rubrics.rubric_generator import RubricGenerator
 from core.grading.models import QAPair
 from core.grading.reflector import Reflector
+from core.grading.refiner import Refiner
 from core.rag.retriever import QARetriever
 from core.rag.vector_store import VectorStore
 
@@ -13,7 +14,7 @@ from chromadb import PersistentClient
 options = {
     "num_ctx": 64000,      # много контекста: методичка + ответ + рубрика
     "num_predict": 8192,   # хватает на подробный JSON-отчёт
-    "temperature": 0.2,    # максимальная детерминированность
+    "temperature": 0.1,    # максимальная детерминированность
     "top_p": 0.8,          # слегка сужаем выбор токенов
     "repeat_penalty": 1.1, # меньше повторов в тексте
     "seed": 42,            # фиксированный сид, если модель/ollama поддерживают
@@ -94,4 +95,14 @@ for question in questions:
 
 qa_retriever.add_pairs(qa_pairs)
 reflection = reflector.reflect()
-print(reflection)
+
+refiner = Refiner(
+    rubric, 
+    reflection, 
+    analysis, 
+    ollama_client,
+    student_task,
+    student_answer,
+)
+refined_grading = refiner.refine()
+print(refined_grading.refined_grading.total_score)
