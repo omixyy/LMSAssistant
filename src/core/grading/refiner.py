@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 
 from core.grading.base_grading import GradingStep
 from core.grading.models import (
@@ -10,6 +10,8 @@ from core.grading.models import (
     GradeBand,
 )
 from core.llm.ollama_client import OllamaClient
+from core.rag.retriever import QARetriever
+from core.rag.vector_store import VectorStore
 
 
 class Refiner(GradingStep):
@@ -21,6 +23,13 @@ class Refiner(GradingStep):
         client: OllamaClient,
         task: Optional[str] = None,
         answer: Optional[str] = None,
+        qa_retriever: Optional[QARetriever] = None,
+        materials_store: Optional[VectorStore] = None,
+        qa_top_k_global: int = 2,
+        qa_top_k_per_item: int = 1,
+        materials_top_k: int = 2,
+        embed_query_answer_chars: int = 2000,
+        max_chars_per_rag_chunk: int = 2000,
     ) -> None:
         super().__init__(client)
         self._rubric = rubric
@@ -28,6 +37,13 @@ class Refiner(GradingStep):
         self._grading_result = grading_result
         self._task = task
         self._answer = answer
+        self._qa_retriever = qa_retriever
+        self._materials_store = materials_store
+        self._qa_top_k_global = qa_top_k_global
+        self._qa_top_k_per_item = qa_top_k_per_item
+        self._materials_top_k = materials_top_k
+        self._embed_query_answer_chars = embed_query_answer_chars
+        self._max_chars_per_rag_chunk = max_chars_per_rag_chunk
 
     @property
     def rubric(self) -> Rubric:
@@ -51,10 +67,21 @@ class Refiner(GradingStep):
 
     def refine(self) -> RefinerResult:
         """Запускает LLM для финальной оценки, возвращает RefinerResult."""
+        rag_context = self._build_rag_context(task=self._task or "", answer=self._answer or "", rubric=self._rubric)
+        rag_block = ""
+        if rag_context:
+            rag_block = f"""
+            ДОПОЛНИТЕЛЬНЫЙ RAG-КОНТЕКСТ (reference Q&A / материалы):
+            {rag_context}
+
+            """
+
         prompt = f"""
         Ты — третья проверяющая модель (REFINER).
         Первая модель (GRADER) уже проверила студенческую работу и выдала результат в формате JSON.
         Вторая модель (REFLECTOR) проанализировала этот результат и указала возможные ошибки.
+
+        {rag_block}
 
         ТВОЯ ЗАДАЧА:
         - на основе условия задания, ответа студента, результата GRADER и вывода REFLECTOR
@@ -111,6 +138,102 @@ class Refiner(GradingStep):
         """
         raw = self._run_llm(prompt)
         return self.map_result(raw)
+
+    def _build_rag_context(self, task: str, answer: str, rubric: Optional[Rubric]) -> Optional[str]:
+        if self._qa_retriever is None and self._materials_store is None:
+            return None
+
+        query_text = (
+            f"ЗАДАНИЕ:\n{task}\n\n"
+            f"ОТВЕТ СТУДЕНТА:\n{(answer or '')[: self._embed_query_answer_chars]}"
+        )
+
+        parts: List[str] = []
+
+        if self._qa_retriever is not None:
+            qa_parts: List[str] = []
+
+            if rubric is not None and getattr(rubric, "items", None):
+                for item in rubric.items:
+                    candidates = [getattr(item, "id", None), getattr(item, "name", None)]
+                    # дедупликация в порядке
+                    seen: set[str] = set()
+                    candidates = [c for c in candidates if c and not (c in seen or seen.add(c))]
+
+                    found: List[Any] = []
+                    for cand in candidates:
+                        found = self._qa_retriever.query(
+                            query_text=query_text,
+                            top_k=self._qa_top_k_per_item,
+                            rubric_item_id=cand,
+                        )
+                        if found:
+                            break
+
+                    if found:
+                        qa_parts.append(
+                            self._format_qa_pair(found[0], rubric_item_id=getattr(item, "id", None))
+                        )
+
+            if not qa_parts:
+                pairs = self._qa_retriever.query(
+                    query_text=query_text,
+                    top_k=self._qa_top_k_global,
+                    rubric_item_id=None,
+                )
+                for pair in pairs:
+                    qa_parts.append(self._format_qa_pair(pair, rubric_item_id=None))
+
+            if qa_parts:
+                parts.append("=== Q&A REFERENCES ===\n" + "\n\n".join(qa_parts))
+
+        if self._materials_store is not None:
+            store_res = self._materials_store.query(query_text=query_text, top_k=self._materials_top_k)
+            documents = store_res.get("documents", [[]])[0] or []
+            metadatas = store_res.get("metadatas", [[]])[0] or []
+
+            material_chunks: List[str] = []
+            for doc, meta in zip(documents, metadatas):
+                doc_text = str(doc or "").strip()
+                if not doc_text:
+                    continue
+                doc_text = doc_text[: self._max_chars_per_rag_chunk]
+
+                meta = meta or {}
+                mtype = meta.get("type")
+                lab = meta.get("lab")
+                prefix = ""
+                if mtype or lab:
+                    prefix = f"[{mtype or 'material'} / lab={lab or '?'}] "
+
+                material_chunks.append(prefix + doc_text)
+
+            if material_chunks:
+                parts.append("=== MATERIALS REFERENCES ===\n" + "\n\n".join(material_chunks))
+
+        return "\n\n".join(parts) if parts else None
+
+    def _format_qa_pair(self, pair: Any, rubric_item_id: Optional[str]) -> str:
+        q = getattr(pair, "question", None)
+        a = getattr(pair, "answer", None)
+        question_text = str(getattr(q, "text", "") or "").strip()
+        answer_text = str(a or "").strip()
+
+        q_short = question_text[: self._max_chars_per_rag_chunk]
+        a_short = answer_text[: self._max_chars_per_rag_chunk]
+
+        source = getattr(pair, "source", None) or ""
+        source_part = f"source: {source}" if source else "source: (none)"
+        rubric_part = (
+            f"rubric_item_id: {rubric_item_id or getattr(q, 'related_rubric_item_id', None) or ''}"
+        )
+
+        return (
+            f"{rubric_part}\n"
+            f"Q: {q_short}\n"
+            f"A: {a_short}\n"
+            f"{source_part}"
+        )
 
     def map_result(self, raw: Dict[str, Any]) -> RefinerResult:
         """Преобразует сырой JSON-ответ REFINER в RefinerResult (с GradingResult внутри)."""

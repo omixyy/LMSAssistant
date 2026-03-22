@@ -30,16 +30,28 @@ processor = DocumentProcessor(
 
 rubric_generator = RubricGenerator(ollama_client)
 
-grader = Grader(ollama_client)
+# Chroma (для RAG)
+chroma_client = PersistentClient(path="./chroma_db")
+qa_retriever = QARetriever(client=chroma_client, collection_name="qa_pairs")
+materials_store = VectorStore(client=chroma_client, collection_name="teaching_materials")
+
+grader = Grader(
+    ollama_client,
+    qa_retriever=qa_retriever,
+    materials_store=materials_store,
+)
 
 # Обработка PDF
-student_answer, _ = processor.process(
+student_answer, meta_answer = processor.process(
     '../test_files/main.pdf',
 )
 
-student_task, _ = processor.process(
+student_task, meta_task = processor.process(
     '../test_files/Методические указания к лабораторной работе 1.01.pdf',
 )
+
+print(meta_answer)
+print(meta_task)
 
 # Возможность преподавателем изменять рубрику
 rubric = (
@@ -62,10 +74,6 @@ rubric = (
 # print(rubric)
 
 analysis = grader.grade(student_task, student_answer, rubric)
-
-chroma_client = PersistentClient(path='./chroma_db')
-qa_retriever = QARetriever(client=chroma_client, collection_name='qa_pairs')
-materials_store = VectorStore(client=chroma_client, collection_name="teaching_materials")
 
 reflector = Reflector(analysis, ollama_client)
 
@@ -103,6 +111,8 @@ refiner = Refiner(
     ollama_client,
     student_task,
     student_answer,
+    qa_retriever=qa_retriever,
+    materials_store=materials_store,
 )
 refined_grading = refiner.refine()
 print(refined_grading.refined_grading.total_score)

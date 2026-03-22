@@ -26,6 +26,7 @@ class PromptBuilder:
         answer: str,
         rubric: Optional[Rubric] = None,
         use_cot: bool = True,
+        rag_context: Optional[str] = None,
     ) -> str:
         """
         Вернуть полный промпт.
@@ -44,6 +45,14 @@ class PromptBuilder:
 
         if rubric is not None:
             parts.append(self._build_rubric_block(rubric))
+
+        if rag_context:
+            parts.append(
+                f"""
+                === RAG-КОНТЕКСТ (reference Q&A / материалы) ===
+                {rag_context}
+                """
+            )
 
         if use_cot:
             parts.append(self._build_cot_instructions())
@@ -130,7 +139,7 @@ class PromptBuilder:
             "КРИТЕРИИ:",
         ]
 
-        for idx, item in enumerate[RubricItem](rubric.items, start=1):
+        for idx, item in enumerate(rubric.items, start=1):
             lines.append(
                 f"{idx}. {item.name} (id: {item.id}, max: {item.max_score})"
             )
